@@ -1,0 +1,10 @@
+.textField {
+    display: flex;
+    flex-direction: column;
+    margin:  2%;
+}
+
+h2 {
+    margin:  2%;
+}
+
