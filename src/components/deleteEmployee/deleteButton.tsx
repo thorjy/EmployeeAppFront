@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -9,22 +10,25 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Employee, getAllEmployees } from "../../features/employeeSlice";
-import React from "react";
+import React, { useState } from "react";
 import {
   useDeleteEmployeeMutation,
   useGetEmployeeListQuery,
 } from "../../services/employeeApi";
-import { useDispatch } from "react-redux";
-import { setCurrentPage } from "../../features/pageSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { selectCurrentPage, setCurrentPage } from "../../features/pageSlice";
+import { useNavigate } from "react-router-dom";
 
 interface employeeCardProps {
   employee: Employee;
 }
 export const DeleteButton: React.FC<employeeCardProps> = ({ employee }) => {
   const [open, setOpen] = React.useState(false);
-  const [deleteEmployee] = useDeleteEmployeeMutation();
-  const { data: employees, isLoading, isError } = useGetEmployeeListQuery();
+  const [deleteEmployee, error] = useDeleteEmployeeMutation();
+  const { data: employees, isError } = useGetEmployeeListQuery();
   const dispatch = useDispatch();
+  const page = useSelector(selectCurrentPage);
+  const [serverError, setServerError] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -32,19 +36,18 @@ export const DeleteButton: React.FC<employeeCardProps> = ({ employee }) => {
 
   const handleClose = () => {
     setOpen(false);
+    setServerError(false);
   };
 
   const handleDelete = async () => {
-    try {
-      // Calling the deleteEmployee mutation with the employee id
-
-      await deleteEmployee(employee.id);
-      handleClose(); // Close the dialog after successful deletion
-      if (employees?.length === 11) {
-        dispatch(setCurrentPage(0));
+    await deleteEmployee(employee.id);
+    await employees;
+    console.log(error);
+    if (error.isUninitialized || error.isError) setServerError(true);
+    if (employees) {
+      if (employees.length % 10 === 1) {
+        dispatch(setCurrentPage(page - 1));
       }
-    } catch (error) {
-      console.error("Error deleting employee:", error);
     }
   };
 
@@ -70,6 +73,7 @@ export const DeleteButton: React.FC<employeeCardProps> = ({ employee }) => {
             Delete
           </Button>
         </DialogActions>
+        {serverError && <Alert severity="error">An error has occured!</Alert>}
       </Dialog>
     </div>
   );

@@ -1,10 +1,6 @@
 import * as React from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-import TableFooter from "@mui/material/TableFooter";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { useGetEmployeeListQuery } from "../../services/employeeApi";
 import { EmployeeCard } from "./employeeCard";
@@ -19,21 +15,16 @@ export function EmployeeContainer() {
   const rowsPerPage = 10;
 
   const { data: employees, isLoading, isError } = useGetEmployeeListQuery();
+  const count = employees?.length;
 
   if (isLoading) {
     return <div>Loading...</div>;
-  }
-
-  if (isError) {
-    return <div>Error loading employees</div>;
   }
 
   if (employees === undefined) return <div>Error</div>;
 
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - employees.length) : 0;
-  const totalRows = employees.length;
-  const totalPages = Math.ceil(totalRows / rowsPerPage);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -44,8 +35,8 @@ export function EmployeeContainer() {
 
   return (
     <TableContainer>
-      <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
-        <TableBody>
+      <div style={{ minWidth: 500 }}>
+        <div>
           <div className="container">
             {(rowsPerPage > 0
               ? employees.slice(
@@ -65,30 +56,45 @@ export function EmployeeContainer() {
           </div>
           {emptyRows > 0 && (
             <TableRow
-              style={{
-                height: 353,
-              }}
+            // style={{
+            //   height: 353,
+            // }}
             >
               <TableCell colSpan={3} />
             </TableRow>
           )}
-        </TableBody>
-        {totalPages > 1 && (
-          <TableFooter>
-            <TableRow>
-              <TablePagination
-                rowsPerPageOptions={[]}
-                colSpan={3}
-                count={employees.length}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                onPageChange={handleChangePage}
-                ActionsComponent={TablePaginationActions}
-              />
-            </TableRow>
-          </TableFooter>
-        )}
-      </Table>
+        </div>
+        <div
+          className="footer"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            margin: "3%",
+          }}
+        >
+          <div style={{ display: "flex", color: "rgb(3, 46, 82)" }}>
+            <span className="entries">
+              Showing{" "}
+              <strong>
+                {page * 10 + 1}-{Math.min(employees.length, (page + 1) * 10)}{" "}
+              </strong>
+              out of <strong>{employees.length} </strong>
+              entries
+            </span>
+          </div>
+          <div
+            className="pageButtons"
+            style={{ display: "flex", width: "20%" }}
+          >
+            <TablePaginationActions
+              onPageChange={handleChangePage}
+              count={employees.length}
+              page={page}
+              rowsPerPage={rowsPerPage}
+            />
+          </div>
+        </div>
+      </div>
     </TableContainer>
   );
 }

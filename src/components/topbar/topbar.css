@@ -26,6 +26,35 @@
   font-size: larger;
 }
 
-.topbar button:hover {
+/* .topbar button:hover {
   background-color: #45a049; /* Darker green color on hover */
+
+.add-button {
+  display: flex;
+  align-items: center;
 }
+
+.add-button .button-text {
+  display: inline-block;
+  margin-left: 5px; /* Adjust the spacing between icon and text */
+}
+
+@media (max-width: 600px) {
+  .topbar button{
+    background: none;
+    font-size:large
+  }
+  .add-button {
+    display: flex;
+  }
+  
+  .add-button .button-text {
+    display: none;
+  }
+  
+  .add-button button {
+    display: none;
+  }
+}
+
+

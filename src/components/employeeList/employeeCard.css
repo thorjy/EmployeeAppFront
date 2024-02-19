@@ -44,8 +44,20 @@
     }
   }
   
-  @media (max-width: 500px) {
+  @media (max-width: 600px) {
     .employeeCard {
       width: 100%;
     }
   }
+
+  @media (max-width: 600px) {
+   .entries{
+      display: none;
+  }
+}
+
+ @media (max-width: 600px ) {
+  .pageButtons{
+    margin-right: 10%;
+  }
+ }

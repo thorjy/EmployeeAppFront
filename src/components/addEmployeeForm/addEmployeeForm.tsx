@@ -1,26 +1,35 @@
 import {
+  Alert,
   Button,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
 } from "@mui/material";
 import { SetStateAction, useState } from "react";
-import { useCreateNewEmployeeMutation } from "../../services/employeeApi";
+import {
+  useCreateNewEmployeeMutation,
+  useGetEmployeeListQuery,
+} from "../../services/employeeApi";
 import { RequiredField } from "./requiredField";
 import "./employeeForm.css";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectCurrentPage, setCurrentPage } from "../../features/pageSlice";
 
 export const AddEmployeeForm = () => {
   const [employeeName, setEmployeeName] = useState("");
   const [employeeSalary, setEmployeeSalary] = useState("");
   const [employeeDepartment, setEmployeeDepartment] = useState("");
-  const [addEmployee] = useCreateNewEmployeeMutation();
+  const [addEmployee, error] = useCreateNewEmployeeMutation();
   const nav = useNavigate();
   const [salaryError, setSalaryError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [departmentError, setDepartmentError] = useState(false);
+  const [serverError, setServerError] = useState(false);
+  const page = useSelector(selectCurrentPage);
+  const { data: employees, isLoading, isError } = useGetEmployeeListQuery();
+  const dispatch = useDispatch();
 
   const handleCreateButton = async () => {
     const newEmployee = {
@@ -28,26 +37,46 @@ export const AddEmployeeForm = () => {
       salary: parseInt(employeeSalary),
       department: employeeDepartment,
     };
-
-    if (employeeName.length < 3 || employeeName.length > 30) {
-      setNameError(true);
+    if (validator()) {
       return;
+    }
+
+    await addEmployee(newEmployee);
+    if (error.isError) {
+      setServerError(true);
+    } else {
+      if (employees) {
+        if (employees.length % 10 === 0 && employees.length !== 0) {
+          dispatch(setCurrentPage(page + 1));
+        }
+      }
+      nav("/");
+    }
+  };
+
+  function validator() {
+    var validateError = false;
+    if (employeeName.length < 4 || employeeName.length > 30) {
+      setNameError(true);
+      validateError = true;
     } else setNameError(false);
 
-    if (newEmployee.salary < 0 || employeeSalary.length === 0) {
+    if (
+      +employeeSalary < 0 ||
+      employeeSalary.length === 0 ||
+      !/^\d+$/.test(employeeSalary)
+    ) {
       setSalaryError(true);
-      return;
+      validateError = true;
     } else setSalaryError(false);
 
     if (employeeDepartment.length < 1) {
       setDepartmentError(true);
-      return;
+      validateError = true;
     } else setDepartmentError(false);
 
-    await addEmployee(newEmployee);
-
-    nav("/");
-  };
+    return validateError;
+  }
 
   const handleFieldChange = (fieldName: string, value: string) => {
     switch (fieldName) {
@@ -73,12 +102,14 @@ export const AddEmployeeForm = () => {
         onChange={handleFieldChange}
         value={undefined}
         error={nameError}
+        helpertext={"Name must be minimum 4 letters and maximum 30 letters!"}
       />
       <RequiredField
         requiredFields={["Employee Salary"]}
         onChange={handleFieldChange}
         value={undefined}
         error={salaryError}
+        helpertext="Salary can only contain positive numbers!"
       />
       <div className="textField">
         <FormControl fullWidth>
@@ -105,21 +136,7 @@ export const AddEmployeeForm = () => {
       >
         Create
       </Button>
-      <Snackbar
-        open={salaryError}
-        autoHideDuration={6000}
-        message="Salary cannot be Negative or Empty!"
-      />
-      <Snackbar
-        open={nameError}
-        autoHideDuration={6000}
-        message="Name must be minimum 4 letters and maximum 30 letters!"
-      />
-      <Snackbar
-        open={departmentError}
-        autoHideDuration={6000}
-        message="Department cannot be empty!"
-      />
+      {serverError && <Alert severity="error">An error has occured!</Alert>}
     </>
   );
 };

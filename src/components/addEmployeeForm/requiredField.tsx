@@ -6,6 +6,7 @@ interface requiredFieldProps {
   onChange: (fieldName: string, value: string) => void;
   value: string | undefined;
   error: boolean;
+  helpertext: string;
 }
 
 export const RequiredField: React.FC<requiredFieldProps> = ({
@@ -13,7 +14,10 @@ export const RequiredField: React.FC<requiredFieldProps> = ({
   onChange,
   value,
   error,
+  helpertext,
 }) => {
+  if (error) {
+  } else helpertext = "";
   return (
     <div className="textField">
       {requiredFields.map((fieldName) => (
@@ -28,6 +32,7 @@ export const RequiredField: React.FC<requiredFieldProps> = ({
             onChange(fieldName, e.target.value);
           }}
           error={error}
+          helperText={helpertext}
         />
       ))}
     </div>

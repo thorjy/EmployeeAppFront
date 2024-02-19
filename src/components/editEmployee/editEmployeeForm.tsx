@@ -4,7 +4,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
+  Alert,
 } from "@mui/material";
 import { SetStateAction, useEffect, useState } from "react";
 import {
@@ -22,17 +22,22 @@ export const EditEmployeeForm = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const empID = params.get("id") || "";
-  const { data: employeeData, isSuccess } = useGetEmployeeByIdQuery(empID);
+  const {
+    data: employeeData,
+    isSuccess,
+    error,
+  } = useGetEmployeeByIdQuery(empID);
   const nav = useNavigate();
   const [salaryError, setSalaryError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [departmentError, setDepartmentError] = useState(false);
-
   const [employeeName, setEmployeeName] = useState("");
   const [employeeSalary, setEmployeeSalary] = useState("");
   const [employeeDepartment, setEmployeeDepartment] = useState("");
-  const [updateEmployee] = useUpdateEmployeeMutation();
-
+  const [updateEmployee, haveError] = useUpdateEmployeeMutation();
+  const [serverError, setServerError] = useState(false);
+  const [changeError, setChangeError] = useState(false);
+  const oldEmployee = employeeData;
   useEffect(() => {
     if (isSuccess && employeeData) {
       setEmployeeName(employeeData.name);
@@ -42,28 +47,28 @@ export const EditEmployeeForm = () => {
   }, [employeeData, isSuccess]);
 
   const handleUpdateButton = async () => {
-    if (employeeName.length < 3 || employeeName.length > 30) {
-      setNameError(true);
-      return;
-    } else setNameError(false);
-
-    if (parseInt(employeeSalary) < 0 || employeeSalary.length === 0) {
-      setSalaryError(true);
-      return;
-    } else setSalaryError(false);
-
-    if (employeeDepartment.length < 1) {
-      setDepartmentError(true);
-      return;
-    } else setDepartmentError(false);
-
+    setSalaryError(false);
     const newEmployee = {
       name: employeeName,
-      salary: parseInt(employeeSalary),
+      salary: +employeeSalary,
       department: employeeDepartment,
     };
+    if (oldEmployee) {
+      if (
+        newEmployee.name === oldEmployee.name &&
+        newEmployee.salary === oldEmployee.salary &&
+        newEmployee.department === oldEmployee.department
+      ) {
+        setChangeError(true);
+        return;
+      } else setChangeError(false);
+    }
+    if (validator()) return;
+
     await updateEmployee([newEmployee, empID]);
-    nav("/");
+    if (haveError.isError) {
+      setServerError(true);
+    } else nav("/");
   };
 
   const handleFieldChange = (fieldName: string, value: string) => {
@@ -78,6 +83,29 @@ export const EditEmployeeForm = () => {
     }
   };
 
+  function validator() {
+    var error = false;
+    if (employeeName.length < 3 || employeeName.length > 30) {
+      setNameError(true);
+      error = true;
+    } else setNameError(false);
+
+    if (
+      +employeeSalary < 0 ||
+      +employeeSalary.length === 0 ||
+      !/^\d+$/.test(employeeSalary)
+    ) {
+      setSalaryError(true);
+      error = true;
+    } else setSalaryError(false);
+
+    if (employeeDepartment.length < 1) {
+      setDepartmentError(true);
+      error = true;
+    } else setDepartmentError(false);
+    return error;
+  }
+
   const handleDepartmentChange = (event: {
     target: { value: SetStateAction<string> };
   }) => {
@@ -91,12 +119,14 @@ export const EditEmployeeForm = () => {
         onChange={handleFieldChange}
         value={employeeName}
         error={nameError}
+        helpertext={"Name must be minimum 4 letters and maximum 30 letters!"}
       />
       <RequiredField
         requiredFields={["Employee Salary"]}
         onChange={handleFieldChange}
         value={employeeSalary}
         error={salaryError}
+        helpertext="Salary can only contain positive numbers"
       />
       <div className="textField">
         <FormControl fullWidth>
@@ -107,6 +137,7 @@ export const EditEmployeeForm = () => {
             value={employeeDepartment}
             label="Department"
             onChange={handleDepartmentChange}
+            error={departmentError}
           >
             <MenuItem value={"PS"}>PS</MenuItem>
             <MenuItem value={"HR"}>HR</MenuItem>
@@ -121,21 +152,10 @@ export const EditEmployeeForm = () => {
       >
         Update
       </Button>
-      <Snackbar
-        open={salaryError}
-        autoHideDuration={6000}
-        message="Salary cannot be Negative or Empty!"
-      />
-      <Snackbar
-        open={nameError}
-        autoHideDuration={6000}
-        message="Name must be minimum 4 letters and maximum 30 letters!"
-      />
-      <Snackbar
-        open={departmentError}
-        autoHideDuration={6000}
-        message="Department cannot be empty!"
-      />
+      {serverError && <Alert severity="error">An error has occured!</Alert>}
+      {changeError && (
+        <Alert severity="error">Error! No changes made to employee!</Alert>
+      )}
     </>
   );
 };

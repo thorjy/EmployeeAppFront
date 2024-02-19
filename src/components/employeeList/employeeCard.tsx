@@ -12,10 +12,13 @@ interface cardProps {
 export const EmployeeCard: React.FC<cardProps> = (props) => {
   return (
     <div className="employeeCard">
-      <div className="cardLeft">
+      <div
+        className="cardLeft"
+        style={{ wordBreak: "break-word", flexWrap: "wrap" }}
+      >
         <h2>{props.name}</h2>
         <p>{props.department}</p>
-        <p>{props.salary}</p>
+        <p>${props.salary}</p>
       </div>
       <div className="cardRight">
         <EditButton employee={props} />
