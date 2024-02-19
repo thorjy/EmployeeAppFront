@@ -14,8 +14,7 @@ export function EmployeeContainer() {
   const page = useSelector(selectCurrentPage);
   const rowsPerPage = 10;
 
-  const { data: employees, isLoading, isError } = useGetEmployeeListQuery();
-  const count = employees?.length;
+  const { data: employees, isLoading } = useGetEmployeeListQuery();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -55,11 +54,7 @@ export function EmployeeContainer() {
             ))}
           </div>
           {emptyRows > 0 && (
-            <TableRow
-            // style={{
-            //   height: 353,
-            // }}
-            >
+            <TableRow>
               <TableCell colSpan={3} />
             </TableRow>
           )}

@@ -9,7 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Employee, getAllEmployees } from "../../features/employeeSlice";
+import { Employee } from "../../features/employeeSlice";
 import React, { useState } from "react";
 import {
   useDeleteEmployeeMutation,
@@ -17,7 +17,6 @@ import {
 } from "../../services/employeeApi";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentPage, setCurrentPage } from "../../features/pageSlice";
-import { useNavigate } from "react-router-dom";
 
 interface employeeCardProps {
   employee: Employee;
@@ -25,7 +24,7 @@ interface employeeCardProps {
 export const DeleteButton: React.FC<employeeCardProps> = ({ employee }) => {
   const [open, setOpen] = React.useState(false);
   const [deleteEmployee, error] = useDeleteEmployeeMutation();
-  const { data: employees, isError } = useGetEmployeeListQuery();
+  const { data: employees } = useGetEmployeeListQuery();
   const dispatch = useDispatch();
   const page = useSelector(selectCurrentPage);
   const [serverError, setServerError] = useState(false);
@@ -46,7 +45,7 @@ export const DeleteButton: React.FC<employeeCardProps> = ({ employee }) => {
     if (error.isUninitialized || error.isError) setServerError(true);
     if (employees) {
       if (employees.length % 10 === 1) {
-        dispatch(setCurrentPage(page - 1));
+        dispatch(setCurrentPage(Math.max(0, page - 1)));
       }
     }
   };
